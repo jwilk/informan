@@ -1,0 +1,40 @@
+severity = 1
+verbose = %f:%l: [%p] %m\n
+
+[-CodeLayout::ProhibitParensWithBuiltins]
+# no, thanks
+ 
+[-CodeLayout::RequireTidyCode]
+# no, thanks
+
+[-ErrorHandling::RequireCarping]
+# die is good enough for our purposes
+
+[-InputOutput::ProhibitInteractiveTest]
+# -t is good enough for our purposes
+ 
+[-InputOutput::RequireCheckedClose]
+[-InputOutput::RequireCheckedOpen]
+# already covered by RequireCheckedSyscalls
+ 
+[InputOutput::RequireCheckedSyscalls]
+functions = :builtins
+
+[-Modules::RequireVersionVar]
+# useful only for modules
+ 
+[-RegularExpressions::RequireDotMatchAnything]
+# we work mostly with single-line strings
+# reconsider when https://github.com/Perl-Critic/Perl-Critic/issues/551 is fixed
+
+[-RegularExpressions::RequireExtendedFormatting]
+# no, thanks
+
+[-RegularExpressions::RequireLineBoundaryMatching]
+# we work mostly with single-line strings
+# reconsider when https://github.com/Perl-Critic/Perl-Critic/issues/551 is fixed
+
+[-ValuesAndExpressions::ProhibitNoisyQuotes]
+# no, thanks
+
+# vim:ft=dosini
