@@ -6,6 +6,7 @@
 no lib '.';  # CVE-2016-1238
 use strict;
 use warnings;
+
 use English qw(-no_match_vars);
 use Encode::Alias ();
 use I18N::Langinfo (qw(langinfo CODESET));
