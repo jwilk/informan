@@ -8,12 +8,25 @@ use strict;
 use warnings;
 use English qw(-no_match_vars);
 
+use Encode::Locale qw();
 use File::Which qw();
 use IPC::Run qw();
+
+sub embolden
+{
+    local ($_) = @_;
+    s/(\X)/$1\b$1/g;
+    $_;
+}
 
 my $text;
 IPC::Run::run(['info', @ARGV], '>', \$text)
     or die 'info(1) failed';
+$text = Encode::decode('locale', $text);
+my $ul_chars = '*=-.';
+my $ul_re = join('|', map { "[$_]+" } split(//, $ul_chars));
+$text =~ s{^(\S.+)(?=\n(?:$ul_re)$)}{embolden($1)}mge;
+$text = Encode::encode('locale', $text);
 my $pager = $ENV{PAGER}
     // File::Which::which('pager')  # Debian <https://www.debian.org/doc/debian-policy/ch-customized-programs.html#editors-and-pagers>
     // 'more';  # POSIX <https://pubs.opengroup.org/onlinepubs/007904975/utilities/man.html#tag_04_85_08>
