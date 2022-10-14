@@ -22,7 +22,7 @@ sub embolden
 {
     local ($_) = @_;
     s/(\X)/$1\b$1/g;
-    $_;
+    return $_;
 }
 
 my $text;
