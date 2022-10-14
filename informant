@@ -22,6 +22,10 @@ sub embolden
 my $text;
 IPC::Run::run(['info', @ARGV], '>', \$text)
     or die 'info(1) failed';
+length $text > 0
+    # This happens when info(1) can't find the page.
+    # But why is exit code 0? FIXME?
+    or die 'info(1) failed';
 $text = Encode::decode('locale', $text);
 my $ul_chars = '*=-.';
 my $ul_re = join('|', map { "[$_]+" } split(//, $ul_chars));
