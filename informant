@@ -7,10 +7,16 @@ no lib '.';  # CVE-2016-1238
 use strict;
 use warnings;
 use English qw(-no_match_vars);
+use Encode::Alias ();
+use I18N::Langinfo (qw(langinfo CODESET));
 
-use Encode::Locale ();
 use File::Which ();
 use IPC::Run ();
+
+{
+    my $encoding = langinfo(CODESET) // 'ASCII';
+    Encode::Alias::define_alias('locale' => $encoding);
+}
 
 sub embolden
 {
