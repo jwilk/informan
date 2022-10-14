@@ -12,7 +12,7 @@ use Encode::Alias ();
 use I18N::Langinfo (qw(langinfo CODESET));
 
 use File::Which ();
-use IPC::Run ();
+use IPC::System::Simple ();
 
 {
     my $encoding = langinfo(CODESET) // 'ASCII';
@@ -26,9 +26,7 @@ sub embolden
     return $_;
 }
 
-my $text;
-IPC::Run::run(['info', @ARGV], '>', \$text)
-    or die 'info(1) failed';
+my $text = IPC::System::Simple::capturex('info', @ARGV);
 length $text > 0
     # This happens when info(1) can't find the page.
     # But why is exit code 0? FIXME?
@@ -51,8 +49,12 @@ if (@ARGV >= 1 and $ARGV[0] =~ m/\A(-h|--help)\Z/) {
     $pager = undef;
 }
 if (defined $pager) {
-    IPC::Run::run(['sh', '-c', $pager], '<', \$text)
-        or die "pager ($pager) failed";
+    open(my $fh, '|-', 'sh', '-c', $pager)
+        or die "pager: $ERRNO";
+    print {$fh} $text
+        or die "pager: $ERRNO";
+    close($fh)
+        or die 'pager: ' . ($ERRNO or 'failed');
 } else {
     print $text
         or die $ERRNO;
