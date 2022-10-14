@@ -46,6 +46,9 @@ if ($pager eq 'cat') {
 if (not -t *STDOUT) {
     $pager = undef;
 }
+if (@ARGV >= 1 and $ARGV[0] =~ m/\A(-h|--help)\Z/) {
+    $pager = undef;
+}
 if (defined $pager) {
     IPC::Run::run(['sh', '-c', $pager], '<', \$text)
         or die "pager ($pager) failed";
