@@ -45,7 +45,7 @@ if ($pager eq 'cat') {
 if (not -t *STDOUT) {
     $pager = undef;
 }
-if (@ARGV >= 1 and $ARGV[0] =~ m/\A(-h|--help)\Z/) {
+if (@ARGV >= 1 and $ARGV[0] =~ m/\A(-h|--help|--version)\Z/) {
     $pager = undef;
 }
 if (defined $pager) {
