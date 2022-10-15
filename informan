@@ -9,6 +9,7 @@ use warnings;
 
 use English qw(-no_match_vars);
 use Encode::Alias ();
+use File::Temp ();
 use I18N::Langinfo (qw(langinfo CODESET));
 
 use File::Which ();
@@ -26,7 +27,19 @@ sub embolden
     return $_;
 }
 
-my $text = IPC::System::Simple::capturex('info', @ARGV);
+my $tmpdir = File::Temp->newdir(TEMPLATE => 'informan.XXXXXX', TMPDIR => 1);
+my $bin_false = File::Which::which('false')
+    or die 'false(1) not found';
+symlink($bin_false, "$tmpdir/man")
+    or die "symlink(): $ERRNO";
+my $PATH = $ENV{PATH} // '';
+length $PATH > 0
+    or die "empty $PATH is not supported";
+$PATH = "$tmpdir:$PATH";
+my $text = do {
+    local $ENV{PATH} = $PATH;
+    IPC::System::Simple::capturex('info', @ARGV);
+};
 length $text > 0
     # This happens when info(1) can't find the page.
     # Huh? https://bugs.debian.org/1021827
