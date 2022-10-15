@@ -29,7 +29,7 @@ sub embolden
 my $text = IPC::System::Simple::capturex('info', @ARGV);
 length $text > 0
     # This happens when info(1) can't find the page.
-    # But why is exit code 0? FIXME?
+    # Huh? https://bugs.debian.org/1021827
     or die 'info(1) failed';
 $text = Encode::decode('locale', $text);
 my $ul_chars = '*=-.';
