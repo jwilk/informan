@@ -36,19 +36,22 @@ my $PATH = $ENV{PATH} // '';
 length $PATH > 0
     or die "empty $PATH is not supported";
 $PATH = "$tmpdir:$PATH";
-my $text = do {
+my @text = do {
     local $ENV{PATH} = $PATH;
+    local $INPUT_RECORD_SEPARATOR = '';
     IPC::System::Simple::capturex('info', @ARGV);
 };
-length $text > 0
+scalar @text > 0
     # This happens when info(1) can't find the page.
     # Huh? https://bugs.debian.org/1021827
     or die 'info(1) failed';
-$text = Encode::decode('locale', $text);
 my $ul_chars = '*=-.';
 my $ul_re = join('|', map { "[$_]+" } split(//, $ul_chars));
-$text =~ s{^(\S.+)(?=\n(?:$ul_re)$)}{embolden($1)}mge;
-$text = Encode::encode('locale', $text);
+for my $text (@text) {
+    $text = Encode::decode('locale', $text);
+    $text =~ s{^(\S.+)(?=\n(?:$ul_re)\n)}{embolden($1)}ge;
+    $text = Encode::encode('locale', $text);
+}
 my $pager = $ENV{PAGER}
     // File::Which::which('pager')  # Debian <https://www.debian.org/doc/debian-policy/ch-customized-programs.html#editors-and-pagers>
     // 'more';  # POSIX <https://pubs.opengroup.org/onlinepubs/007904975/utilities/man.html#tag_04_85_08>
@@ -64,13 +67,17 @@ if (@ARGV >= 1 and $ARGV[0] =~ m/\A(-h|--help|--version)\Z/) {
 if (defined $pager) {
     open(my $fh, '|-', 'sh', '-c', $pager)
         or die "pager: $ERRNO";
-    print {$fh} $text
-        or die "pager: $ERRNO";
+    for my $text (@text) {
+        print {$fh} $text
+            or die "pager: $ERRNO";
+    }
     close($fh)
         or die 'pager: ' . ($ERRNO or 'failed');
 } else {
-    print $text
-        or die $ERRNO;
+    for my $text (@text) {
+        print $text
+            or die $ERRNO;
+    }
 }
 
 # vim:ts=4 sts=4 sw=4 et
