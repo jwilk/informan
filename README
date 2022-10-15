@@ -1,0 +1,17 @@
+Overview
+========
+
+**informan** is a man(1)-like info viewer.
+
+Requirements
+============
+
+* stand-alone GNU Info
+
+* Perl ≥ 5.10
+
+* `File::Which <https://metacpan.org/dist/File-Which>`_
+
+* `IPC::System::Simple <https://metacpan.org/dist/IPC-System-Simple>`_
+
+.. vim:ft=rst ts=3 sts=3 sw=3 et
