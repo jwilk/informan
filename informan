@@ -10,6 +10,7 @@ use v5.10;
 use strict;
 use warnings;
 
+use charnames ':full';
 
 use Encode::Alias ();
 use English qw(-no_match_vars);
@@ -29,6 +30,23 @@ sub embolden
     local ($_) = @_;
     s/(\X)/$1\b$1/g;
     return $_;
+}
+
+sub fmt_xref
+{
+    (undef, my $space, local $_) = @_;
+    state $arrow = do {
+        my $s = "\N{RIGHTWARDS ARROW}";
+        Encode::encode('locale', $s,
+            sub { $s = '->'; }
+        );
+        $s =~ s/(.)/_\b$1/g;
+        $s;
+    };
+    s/\c?//g;
+    s/(?![.,]\z)(\X)/_\b$1/g;
+    $space =~ s/^ *//;
+    return "$arrow ${space}$_";
 }
 
 my $tmpdir = File::Temp->newdir(TEMPLATE => 'informan.XXXXXX', TMPDIR => 1);
@@ -51,9 +69,15 @@ scalar @text > 0
     or die 'info(1) failed';
 my $ul_chars = '*=-.';
 my $ul_re = join('|', map { "[$_]+" } split(//, $ul_chars));
+my $qstring_re = qr/\c?[^\c?]+\c?/;
+my $node_re = qr/[^,.:]+|$qstring_re/;
+my $id_re = qr/(?:[(][^)]+[)])?$node_re/;
+my $label_re = qr/[^:]+|$qstring_re/;
+my $xref_re = qr/([*] *[Nn]ote)(\s++)(${id_re}::|$label_re:$id_re[.,])/;
 for my $text (@text) {
     $text = Encode::decode('locale', $text);
-    $text =~ s{^(\S.+)(?=\n(?:$ul_re)\n)}{embolden($1)}ge;
+    $text =~ s{^(\S.+)(?=\n(?:$ul_re)\n)}{embolden($1)}ge or
+        $text =~ s{$xref_re}{fmt_xref($1, $2, $3)}ge;
     $text = Encode::encode('locale', $text);
 }
 my $pager = $ENV{PAGER}
