@@ -44,7 +44,7 @@ sub fmt_xref
         $s;
     };
     s/\c?//g;
-    s/(?![.,]\z)(\X)/_\b$1/g;
+    s/(?![.,]\z)((?=\S)\X)/_\b$1/g;
     $space =~ s/^ *//;
     return "$arrow ${space}$_";
 }
