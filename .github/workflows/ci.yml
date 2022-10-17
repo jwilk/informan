@@ -29,6 +29,10 @@ jobs:
     - name: run shellcheck
       run: |
         shellcheck t/*.t
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
     - name: check README syntax
       run: |
         pip install restructuredtext-lint pygments
