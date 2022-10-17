@@ -3,6 +3,16 @@ Overview
 
 **informan** is a man(1)-like info viewer.
 
+Example
+-------
+
+.. figure:: doc/screenshot.svg
+
+   “``informant du``” with less_ as the pager.
+
+   .. _less:
+      https://www.greenwoodsoftware.com/less/
+
 Requirements
 ============
 
