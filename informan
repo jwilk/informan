@@ -67,6 +67,10 @@ scalar @text > 0
     # This can happen when info(1) can't find the page.
     # https://git.savannah.gnu.org/cgit/texinfo.git/commit/?id=15408a7b46ae1c0d
     or die 'info(1) failed';
+my $node;
+if ($text[0] =~ m/\AFile: (\S+)[.]info,  Node: (\S.*),  Next:/) {
+    $node = "($1)$2";
+}
 my $ul_chars = '*=-.';
 my $ul_re = join('|', map { "[$_]+" } split(//, $ul_chars));
 my $qstring_re = qr/\c?[^\c?]+\c?/;
@@ -92,7 +96,25 @@ if (not -t *STDOUT) {
 if (@ARGV >= 1 and $ARGV[0] =~ m/\A(-h|--help|--version)\Z/) {
     $pager = undef;
 }
+
+sub get_less_options
+{
+    my ($title) = @_;
+    $title =~ s/([?:.%\\])/\\$1/g;
+    my $repl_char = Encode::encode('locale', "\N{REPLACEMENT CHARACTER}");
+    $title =~ s/\$/$repl_char/g;  # FIXME? We could use--use-backslash, but eww...
+	my $prompt = 'Info';
+    if (defined $title) {
+        $prompt .= " $title";
+    }
+    # Shamelessly stolen from <https://git.savannah.nongnu.org/cgit/man-db.git/tree/src/man.c?h=2.9.4#n4173>:
+    $prompt .= ', ?ltline %lt?L/%L.:byte %bB?s/%s..?e (END):?pB %pB\%..';
+    $prompt .= ' (press h for help or q to quit)';
+    return "-ix8mPm$prompt\$PM$prompt\$";
+}
+
 if (defined $pager) {
+    local $ENV{LESS} = get_less_options($node);
     open(my $fh, '|-', 'sh', '-c', $pager)
         or die "pager: $ERRNO";
     for my $text (@text) {
