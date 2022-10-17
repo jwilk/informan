@@ -46,8 +46,8 @@ my @text = do {
     IPC::System::Simple::capturex('info', @ARGV);
 };
 scalar @text > 0
-    # This happens when info(1) can't find the page.
-    # Huh? https://bugs.debian.org/1021827
+    # This can happen when info(1) can't find the page.
+    # https://git.savannah.gnu.org/cgit/texinfo.git/commit/?id=15408a7b46ae1c0d
     or die 'info(1) failed';
 my $ul_chars = '*=-.';
 my $ul_re = join('|', map { "[$_]+" } split(//, $ul_chars));
