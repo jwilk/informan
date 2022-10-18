@@ -101,8 +101,12 @@ sub get_less_options
 {
     my ($title) = @_;
     $title =~ s/([?:.%\\])/\\$1/g;
+    # FIXME: less doesn't seem to offer any good way to escape $ characters.
+    # --use-backslash may sound like what we want, but there's no apparent way
+    # to undo it, so that it doesn't affect the original user's $LESS.
+    # See also: https://bugs.debian.org/1021951
     my $repl_char = Encode::encode('locale', "\N{REPLACEMENT CHARACTER}");
-    $title =~ s/\$/$repl_char/g;  # FIXME? We could use--use-backslash, but eww...
+    $title =~ s/\$/$repl_char/g;
 	my $prompt = 'Info';
     if (defined $title) {
         $prompt .= " $title";
