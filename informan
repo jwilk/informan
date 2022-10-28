@@ -68,7 +68,7 @@ scalar @text > 0
     # https://git.savannah.gnu.org/cgit/texinfo.git/commit/?id=15408a7b46ae1c0d
     or die 'info(1) failed';
 my $node;
-if ($text[0] =~ m/\AFile: (\S+)[.]info,  Node: (\S.*),  (?:Next|Up):/) {
+if ($text[0] =~ m/\AFile: (\S+)[.]info,  Node: (\S.*?),  (?:Next|Prev|Up):/) {
     $node = "($1)$2";
 }
 my $ul_chars = '*=-.';
