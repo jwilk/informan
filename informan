@@ -114,12 +114,17 @@ sub get_less_options
     # Shamelessly stolen from <https://git.savannah.nongnu.org/cgit/man-db.git/tree/src/man.c?h=2.9.4#n4173>:
     $prompt .= ', ?ltline %lt?L/%L.:byte %bB?s/%s..?e (END):?pB %pB\%..';
     $prompt .= ' (press h for help or q to quit)';
+    my $prefix = "-ix8mPm$prompt\$PM$prompt\$";
     my $LESS = $ENV{LESS} // '';
-    return "-ix8mPm$prompt\$PM$prompt\$$LESS";
+    my $orig_prefix = $ENV{INFORMAN_LESS_PREFIX} // '';
+    $LESS =~ s/\A\Q$orig_prefix//;
+    return ($prefix, $LESS);
 }
 
 if (defined $pager) {
-    local $ENV{LESS} = get_less_options($node);
+    my ($less_prefix, $orig_less) = get_less_options($node);
+    local $ENV{INFORMAN_LESS_PREFIX} = $less_prefix;
+    local $ENV{LESS} = "$less_prefix$orig_less";
     open(my $fh, '|-', 'sh', '-c', $pager)
         or die "pager: $ERRNO";
     for my $text (@text) {
