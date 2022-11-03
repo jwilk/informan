@@ -49,24 +49,85 @@ sub fmt_xref
     return "$arrow ${space}$_";
 }
 
+sub create_script
+{
+    my ($path, @text) = @_;
+    use autodie;
+    open my $fh, '>', $path;
+    for (@text) {
+        say {$fh} $_
+            or die "$path: $ERRNO";
+    }
+    close $fh;
+    chmod oct('755'), $path;
+    return;
+}
+
+sub slurp0
+{
+    my ($path) = @_;
+    use autodie;
+    open my $fh, '<', $path;
+    local $INPUT_RECORD_SEPARATOR = "\0";
+    my @lines = <$fh>;
+    close $fh;
+    chomp @lines;
+    return @lines;
+}
+
+sub get_mans
+{
+    my ($man) = @_;
+    my @lines = eval {
+        IPC::System::Simple::capturex('man', '-a', '-w', $man);
+    } or return;
+    chomp @lines;
+    return map { m{/([^/]+?)(?:[.]gz)?$} and $1 } @lines;
+}
+
 my $tmpdir = File::Temp->newdir(TEMPLATE => 'informan.XXXXXX', TMPDIR => 1);
-my $bin_false = File::Which::which('false')
-    or die 'false(1) not found';
-symlink($bin_false, "$tmpdir/man")
-    or die "symlink(): $ERRNO";
+create_script("$tmpdir/man", <<'EOF');
+#!/bin/sh
+printf '%s\0' "$@" > "${0%/*}/log"
+EOF
 my $PATH = $ENV{PATH} // '';
 length $PATH > 0
     or die "empty $PATH is not supported";
 $PATH = "$tmpdir:$PATH";
+my $info_error;
 my @text = do {
     local $ENV{PATH} = $PATH;
     local $INPUT_RECORD_SEPARATOR = '';
-    IPC::System::Simple::capturex('info', @ARGV);
+    my @lines = ();
+    eval {
+        @lines = IPC::System::Simple::capturex('info', @ARGV);
+    } or do {
+        $info_error = $EVAL_ERROR;
+    };
+    @lines;
 };
-scalar @text > 0
+if ((not $info_error) and (scalar @text == 0)) {
     # This can happen when info(1) can't find the page.
     # https://git.savannah.gnu.org/cgit/texinfo.git/commit/?id=15408a7b46ae1c0d
-    or die 'info(1) failed';
+    $info_error = 'info(1) failed';
+}
+if ($info_error) {
+    my @args = eval {
+        slurp0("$tmpdir/log");
+    } or ();
+    if (@args == 2 and $args[0] eq '-a') {
+        my @mans = get_mans($args[1]);
+        if (@mans > 0) {
+            say {*STDERR} 'Try looking up manual pages instead:'
+                or die $ERRNO;
+            for my $man (@mans) {
+                say {*STDERR} "  man $man"
+                    or die $ERRNO;
+            }
+        }
+    }
+    die $info_error;
+}
 my $node;
 if ($text[0] =~ m/\AFile: (\S+)[.]info,  Node: (\S.*?),  (?:Next|Prev|Up):/) {
     $node = "($1)$2";
