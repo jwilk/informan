@@ -129,13 +129,17 @@ if ($info_error) {
     die $info_error;
 }
 my $node;
-if ($text[0] =~ m/\AFile: (\S+)[.]info,  Node: (\S.*?),  (?:Next|Prev|Up):/) {
-    $node = "($1)$2";
+my $qstring_re = qr/\c?[^\c?]+\c?/;
+my $node_re = qr/[^,.:]+|$qstring_re/;
+if ($text[0] =~ m/\AFile:\s+([^\s,]+),\s+Node:\s+($node_re),\s+(?:Next|Prev(?:ious)?|Up):/) {
+    my $file = $1;
+    $node = $2;
+    $file =~ s/[.]info\z//;
+    $node =~ s/\c?//g;
+    $node = "($file)$node";
 }
 my $ul_chars = '*=-.';
 my $ul_re = join('|', map { "[$_]+" } split(//, $ul_chars));
-my $qstring_re = qr/\c?[^\c?]+\c?/;
-my $node_re = qr/[^,.:]+|$qstring_re/;
 my $id_re = qr/(?:[(][^)]+[)])?$node_re/;
 my $label_re = qr/[^:]+|$qstring_re/;
 my $xref_re = qr/([*] *[Nn]ote)(\s++)(${id_re}::|$label_re:$id_re[.,])/;
