@@ -140,7 +140,8 @@ if ($text[0] =~ m/\AFile:\s+([^\s,]+),\s+Node:\s+($node_re),\s+(?:Next|Prev(?:io
 }
 my $ul_chars = '*=-.';
 my $ul_re = join('|', map { "[$_]+" } split(//, $ul_chars));
-my $id_re = qr/(?:[(][^)]+[)])?$node_re/;
+my $infofile_re = qr/([(](?:(?>[^()]+)|(?-1))*[)])/;  # nested parens
+my $id_re = qr/(?:$infofile_re)?$node_re/;
 my $label_re = qr/[^:]+|$qstring_re/;
 my $xref_re = qr/([*] *[Nn]ote)(\s++)(${id_re}::|$label_re:$id_re[.,])/;
 for my $text (@text) {
