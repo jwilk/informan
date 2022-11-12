@@ -85,6 +85,20 @@ sub get_mans
     return map { m{/([^/]+?)(?:[.]gz)?$} and $1 } @lines;
 }
 
+sub qstr::TIEHASH
+{
+    my ($class) = @_;
+    return bless {}, $class;
+}
+
+sub qstr::FETCH
+{
+    my ($self, $index) = @_;
+    return qr/[^$index]+|\c?[^\c?]+\c?/;
+}
+
+tie my %qstr_re, 'qstr';  ## no critic (ProhibitTies)
+
 my $tmpdir = File::Temp->newdir(TEMPLATE => 'informan.XXXXXX', TMPDIR => 1);
 create_script("$tmpdir/man", <<'EOF');
 #!/bin/sh
@@ -129,9 +143,7 @@ if ($info_error) {
     die $info_error;
 }
 my $node;
-my $qstring_re = qr/\c?[^\c?]+\c?/;
-my $node_re = qr/[^,.:]+|$qstring_re/;
-if ($text[0] =~ m/\AFile:\s+([^\s,]+),\s+Node:\s+($node_re),\s+(?:Next|Prev(?:ious)?|Up):/) {
+if ($text[0] =~ m/\AFile:\s+([^\s,]+),\s+Node:\s+($qstr_re{','}),\s+(?:Next|Prev(?:ious)?|Up):/) {
     my $file = $1;
     $node = $2;
     $file =~ s/[.]info\z//;
@@ -141,9 +153,9 @@ if ($text[0] =~ m/\AFile:\s+([^\s,]+),\s+Node:\s+($node_re),\s+(?:Next|Prev(?:io
 my $ul_chars = '*=-.';
 my $ul_re = join('|', map { "[$_]+" } split(//, $ul_chars));
 my $infofile_re = qr/([(](?:(?>[^()]+)|(?-1))*[)])/;  # nested parens
-my $id_re = qr/(?:$infofile_re)?$node_re/;
-my $label_re = qr/[^:]+|$qstring_re/;
-my $xref_re = qr/([*] *[Nn]ote)(\s++)(${id_re}::|$label_re:$id_re[.,])/;
+my $label_re = $qstr_re{':'};
+my $id_re = qr/(?:$infofile_re)?$qstr_re{'.,'}/;
+my $xref_re = qr/([*] *[Nn]ote)(\s++)($label_re:(?::|$id_re[.,]))/;
 for my $text (@text) {
     $text = Encode::decode('locale', $text);
     $text =~ s{^(\S.+)(?=\n(?:$ul_re)\n)}{embolden($1)}ge or
