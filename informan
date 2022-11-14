@@ -129,7 +129,7 @@ if ($info_error) {
     my @args = eval {
         slurp0("$tmpdir/log");
     } or ();
-    if (@args == 2 and $args[0] eq '-a') {
+    if (@args == 2 and $args[0] =~ m/\A-[aw]\z/) {
         my @mans = get_mans($args[1]);
         if (@mans > 0) {
             say {*STDERR} 'Try looking up manual pages instead:'
