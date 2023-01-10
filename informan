@@ -103,6 +103,7 @@ my $tmpdir = File::Temp->newdir(TEMPLATE => 'informan.XXXXXX', TMPDIR => 1);
 create_script("$tmpdir/man", <<'EOF');
 #!/bin/sh
 printf '%s\0' "$@" > "${0%/*}/log"
+exit 1
 EOF
 my $PATH = $ENV{PATH} // '';
 length $PATH > 0
