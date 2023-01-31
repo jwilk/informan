@@ -139,6 +139,7 @@ if ($info_error) {
                 say {*STDERR} "  man $man"
                     or die $ERRNO;
             }
+            exit 1;
         }
     }
     die $info_error;
