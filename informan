@@ -180,7 +180,7 @@ if (@ARGV >= 1 and $ARGV[0] =~ m/\A(-h|--help|--version)\Z/) {
 sub get_less_options
 {
     my ($title) = @_;
-	my $prompt = 'Info';
+    my $prompt = 'Info';
     if (defined $title) {
         $title =~ s/([?:.%\\])/\\$1/g;
         # FIXME: less doesn't seem to offer any good way to escape $ characters.
