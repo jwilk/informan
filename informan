@@ -167,7 +167,7 @@ for my $text (@text) {
 my $pager = $ENV{PAGER}
     // File::Which::which('pager')  # Debian <https://www.debian.org/doc/debian-policy/ch-customized-programs.html#editors-and-pagers>
     // 'more';  # POSIX <https://pubs.opengroup.org/onlinepubs/007904975/utilities/man.html#tag_04_85_08>
-if ($pager eq 'cat') {
+if ($pager eq 'cat' or $pager eq '') {
     $pager = undef;
 }
 if (not -t *STDOUT) {
